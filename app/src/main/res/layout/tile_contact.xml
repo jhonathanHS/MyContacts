@@ -9,13 +9,13 @@
         android:id="@+id/nameTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/name"
+        android:text="Name"
         android:textSize="25sp" />
 
     <TextView
         android:id="@+id/emailTv"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/email" />
+        android:text="Email" />
 
 </LinearLayout>

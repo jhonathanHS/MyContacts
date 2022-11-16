@@ -5,6 +5,5 @@
         android:id="@+id/addContactMi"
         android:icon="@drawable/ic_add"
         android:title="Add contact"
-        app:showAsAction = "ifRoom"
-        />
+        app:showAsAction="ifRoom" />
 </menu>
