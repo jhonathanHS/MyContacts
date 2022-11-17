@@ -1,4 +1,6 @@
-package br.edu.ifsp.ads.pdm.mycontacts.model
+package br.edu.ifsp.ads.pdm.mycontacts.model.dao
+
+import br.edu.ifsp.ads.pdm.mycontacts.model.entity.Contact
 
 interface ContactDao {
     //o inteiro que será retornado é o id de quem foi inserido

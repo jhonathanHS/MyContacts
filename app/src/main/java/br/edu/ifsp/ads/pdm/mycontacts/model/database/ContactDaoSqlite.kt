@@ -1,4 +1,4 @@
-package br.edu.ifsp.ads.pdm.mycontacts.model
+package br.edu.ifsp.ads.pdm.mycontacts.model.database
 
 import android.content.ContentValues
 import android.content.Context
@@ -7,6 +7,8 @@ import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import br.edu.ifsp.ads.pdm.mycontacts.R
+import br.edu.ifsp.ads.pdm.mycontacts.model.entity.Contact
+import br.edu.ifsp.ads.pdm.mycontacts.model.dao.ContactDao
 import java.sql.SQLException
 
 //o Sqlite é um banco de dados que fica em arquivo dentro do aplicativo, portanto
@@ -17,7 +19,7 @@ import java.sql.SQLException
 
 //dentro dos parênteses está especificado o CONSTRUTOR PADRÃO
 //ContactDaoSqlite implementa a interface que criei
-class ContactDaoSqlite(context: Context): ContactDao{
+class ContactDaoSqlite(context: Context): ContactDao {
     //define um objeto de constantes - esse objeto foi criado por bom hábito, para não ter que alterar
     //várias partes do projeto de algo aqui dentro mudar, assim eu posso mudar apenas aqui
     companion object Constant{

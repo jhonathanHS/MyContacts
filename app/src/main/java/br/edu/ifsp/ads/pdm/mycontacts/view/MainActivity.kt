@@ -14,10 +14,11 @@ import androidx.appcompat.app.AppCompatActivity
 import br.edu.ifsp.ads.pdm.mycontacts.R
 import br.edu.ifsp.ads.pdm.mycontacts.adapter.ContactAdapter
 import br.edu.ifsp.ads.pdm.mycontacts.controller.ContactController
+import br.edu.ifsp.ads.pdm.mycontacts.controller.ContactRoomController
 import br.edu.ifsp.ads.pdm.mycontacts.databinding.ActivityMainBinding
 import br.edu.ifsp.ads.pdm.mycontacts.model.Constant.EXTRA_CONTACT
 import br.edu.ifsp.ads.pdm.mycontacts.model.Constant.VIEW_CONTACT
-import br.edu.ifsp.ads.pdm.mycontacts.model.Contact
+import br.edu.ifsp.ads.pdm.mycontacts.model.entity.Contact
 
 class MainActivity : AppCompatActivity() {
     private val amb: ActivityMainBinding by lazy {
@@ -33,8 +34,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var carl: ActivityResultLauncher<Intent>
 
     //inicializa o controller na primeira chamada
-    private val contactController: ContactController by lazy {
-        ContactController(this)
+    private val contactController: ContactRoomController by lazy {
+        ContactRoomController(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,30 +52,24 @@ class MainActivity : AppCompatActivity() {
             if (result.resultCode == RESULT_OK) {
                 val contact = result.data?.getParcelableExtra<Contact>(EXTRA_CONTACT)
 
-                contact?.let { _contact->
-                    val position = contactList.indexOfFirst { it.id == _contact.id }
-                    if (position != -1) {
-                        // Alterar na posição
-                        contactList[position] = _contact
-                        //edita o contato no banco usando controller
-                        contactController.editContact(_contact)
-                    }
-                    else {
+                contact?.let { _contact ->
+                    if (_contact.id != null) {
+                        val position = contactList.indexOfFirst { it.id == _contact.id }
+                        if (position != -1) {
+                            //edita o contato no banco usando controller
+                            contactController.editContact(_contact)
+                        }
+                    } else {
                         //o banco vai sobrescrever o 'id' '-1' que foi criado na criação do objeto, trocando por outro id (de acordo com o
                         //autoincrement) e armazenando no banco com o id correto. Como o comando de insert retorna o id de quem foi inserido,
                         //ele vai retornar o id que foi inserido no banco, que vai ser atribuído ao objeto criado e o objeto criado
                         //será adicionado à lista
 
                         //essa alteração foi feita para não dar inconsistência entre os id's de um mesmo objeto no banco e na lista de contatos
-                        _contact.id = contactController.insertContact(_contact)
-                        contactList.add(_contact)
+                        contactController.insertContact(_contact)
                         //adiciona no banco usando o controller
 
                     }
-                    //ordena a lista de contatos por nome, pois no banco eles são recuperados por ordem de nome
-                    contactList.sortBy { it.name }
-
-                    contactAdapter.notifyDataSetChanged()
                 }
             }
         }
@@ -89,6 +84,9 @@ class MainActivity : AppCompatActivity() {
                 contactIntent.putExtra(VIEW_CONTACT, true)
                 startActivity(contactIntent)
             }
+
+        //Buscando contatos no banco
+        contactController.getContacts()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -97,12 +95,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when(item.itemId) {
+        return when (item.itemId) {
             R.id.addContactMi -> {
                 carl.launch(Intent(this, ContactActivity::class.java))
                 true
             }
-            else -> { false }
+            else -> {
+                false
+            }
         }
     }
 
@@ -116,13 +116,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         val position = (item.menuInfo as AdapterContextMenuInfo).position
-        return when(item.itemId) {
+        val contact = contactList[position]
+        return when (item.itemId) {
             R.id.removeContactMi -> {
                 //remove o contato no banco, usando o controller
                 //isso deve ser feito antes de remover da lista, senão na hora de passar a posição
                 //que deve ser deletada para o banco, ele vai deletar a do elemento que ocupou o lugar de quem foi
                 //deletado na lista
-                contactController.removeContact(contactList[position].id)
+                contactController.removeContact(contact)
                 // Remove o contato
                 contactList.removeAt(position)
                 contactAdapter.notifyDataSetChanged()
@@ -130,14 +131,15 @@ class MainActivity : AppCompatActivity() {
             }
             R.id.editContactMi -> {
                 // Chama a tela para editar o contato
-                val contact = contactList[position]
                 val contactIntent = Intent(this, ContactActivity::class.java)
                 contactIntent.putExtra(EXTRA_CONTACT, contact)
                 contactIntent.putExtra(VIEW_CONTACT, false)
                 carl.launch(contactIntent)
                 true
             }
-            else -> { false }
+            else -> {
+                false
+            }
         }
     }
 
@@ -153,5 +155,11 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
+    }
+
+    fun updateContactList(_contactList: MutableList<Contact>) {
+        contactList.clear()
+        contactList.addAll(_contactList)
+        contactAdapter.notifyDataSetChanged()
     }
 }
